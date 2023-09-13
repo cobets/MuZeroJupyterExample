@@ -9,7 +9,7 @@ class State:
     C = {0: '_', BLACK: 'O', WHITE: 'X'}
 
     def __init__(self):
-        self.board = np.zeros((3, 3)) # (x, y)
+        self.board = np.zeros((3, 3))  # (x, y)
         self.color = 1
         self.win_color = 0
         self.record = []
@@ -67,7 +67,8 @@ class State:
 
     def feature(self):
         # input tensor for neural net (state)
-        return np.stack([self.board == self.color, self.board == -self.color]).astype(np.float32)
+        result = np.stack([self.board == self.color, self.board == -self.color]).astype(np.float32)
+        return result
 
     def action_feature(self, action):
         # input tensor for neural net (action)

@@ -1,12 +1,14 @@
 # Main algorithm of MuZero
 
+import torch
+import torch.optim as optim
+import numpy as np
+
 from net import Net
 from state import State
 from tree import Tree
 from train import train
-
-import numpy as np
-import torch.optim as optim
+import config as cfg
 
 
 #  Battle against random agents
@@ -29,10 +31,6 @@ def vs_random(net, n=100):
     return results
 
 
-num_games = 50000
-num_games_one_epoch = 20
-num_simulations = 40
-
 net = Net()
 optimizer = optim.SGD(net.parameters(), lr=3e-4, weight_decay=3e-5, momentum=0.8)
 
@@ -44,7 +42,7 @@ print('vs_random = ', sorted(vs_random_sum.items()))
 episodes = []
 result_distribution = {1: 0, 0: 0, -1: 0}
 
-for g in range(num_games):
+for g in range(cfg.num_games):
     # Generate one episode
     record, p_targets, features, action_features = [], [], [], []
     state = State()
@@ -53,7 +51,7 @@ for g in range(num_games):
 
     while not state.terminal():
         tree = Tree(net)
-        p_target = tree.think(state, num_simulations, temperature)
+        p_target = tree.think(state, cfg.num_simulations, temperature)
         p_targets.append(p_target)
         features.append(state.feature())
 
@@ -69,23 +67,26 @@ for g in range(num_games):
     result_distribution[reward] += 1
     episodes.append((record, reward, features, action_features, p_targets))
 
-    if g % num_games_one_epoch == 0:
+    if g % cfg.num_games_one_epoch == 0:
         print('game ', end='')
     print(g, ' ', end='')
 
     # Training of neural net
-    if (g + 1) % num_games_one_epoch == 0:
-        # Show the result distributiuon of generated episodes
-        print('generated = ', sorted(result_distribution.items()))
+    if (g + 1) % cfg.num_games_one_epoch == 0:
+        # Show the result distribution of generated episodes
+        print('generated =', sorted(result_distribution.items()), end=' ')
         net = train(episodes, net, optimizer)
         vs_random_once = vs_random(net)
-        print('vs_random = ', sorted(vs_random_once.items()), end='')
+        print('vs_random =', sorted(vs_random_once.items()), end='')
         for r, n in vs_random_once.items():
             vs_random_sum[r] += n
-        print(' sum = ', sorted(vs_random_sum.items()))
+        print(' sum =', sorted(vs_random_sum.items()))
         #show_net(net, State())
         #show_net(net, State().play('A1 C1 A2 C2'))
         #show_net(net, State().play('A1 B2 C3 B3 C1'))
         #show_net(net, State().play('B2 A2 A3 C1 B3'))
         #show_net(net, State().play('B2 A2 A3 C1'))
+
+print('saving model...')
+torch.save(net.state_dict(), f'muzero-tictactoe-model-{cfg.num_games}.pth')
 print('finished')
