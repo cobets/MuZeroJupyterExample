@@ -1,5 +1,4 @@
 import torch.nn as nn
-from state import State
 from representation import Representation
 from prediction import Prediction
 from dynamics import Dynamics
@@ -8,9 +7,9 @@ import config as cfg
 
 # Whole net
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, state_class):
         super().__init__()
-        state = State()
+        state = state_class()
         input_shape = state.feature().shape
         action_shape = state.action_feature(0).shape
         rp_shape = (cfg.num_filters, *input_shape[1:])

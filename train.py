@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 import config as cfg
 
+
 # Generate inputs and targets for training
 def gen_target(ep, k):
     # path, reward, observation, action, policy
